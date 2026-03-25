@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Tracker — Bonim Bina</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3344;
+    --text: #e4e6ed;
+    --text2: #8b8fa3;
+    --accent: #6c63ff;
+    --accent2: #8b83ff;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --orange: #f39c12;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  /* Layout */
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    padding: 4px;
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--accent); color: white; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { opacity: 0.9; }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { opacity: 0.9; }
+  .btn-outline {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+  .btn-icon {
+    width: 32px; height: 32px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+  }
+
+  /* Inputs */
+  input, select, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 100%;
+    font-family: inherit;
+    direction: rtl;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  select { cursor: pointer; }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .form-group { display: flex; flex-direction: column; }
+
+  /* Timer */
+  .timer-display {
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  .timer-time {
+    font-size: 3.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    direction: ltr;
+  }
+
+  .timer-project {
+    color: var(--text2);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .btn-timer {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .btn-start { background: var(--green); color: white; }
+  .btn-start:hover { transform: scale(1.05); }
+  .btn-stop { background: var(--red); color: white; }
+  .btn-stop:hover { transform: scale(1.05); }
+
+  .timer-running .timer-time {
+    color: var(--green);
+  }
+
+  /* Quick entry bar */
+  .quick-entry {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .quick-entry .form-group { flex: 1; min-width: 120px; }
+  .quick-entry .form-group.desc { flex: 2; }
+
+  /* Table */
+  .entries-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .entries-table th {
+    text-align: right;
+    padding: 10px 12px;
+    color: var(--text2);
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .entries-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+
+  .entries-table tr:hover td { background: var(--surface2); }
+
+  .entries-table .hours {
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .tag-client {
+    background: rgba(108, 99, 255, 0.15);
+    color: var(--accent2);
+  }
+
+  .tag-project {
+    background: rgba(46, 204, 113, 0.15);
+    color: var(--green);
+  }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    direction: ltr;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* Client list */
+  .client-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .client-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .client-info h3 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+
+  .client-info p {
+    font-size: 0.8rem;
+    color: var(--text2);
+  }
+
+  .client-actions { display: flex; gap: 4px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h2 { margin-bottom: 16px; }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  /* Section visibility */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text2);
+  }
+
+  .empty p { margin-bottom: 12px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .filter-bar .form-group { flex: 1; min-width: 140px; }
+
+  /* Report summary */
+  .report-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+
+  .report-row:last-child { border-bottom: none; }
+  .report-row .rr-hours { font-weight: 600; direction: ltr; }
+
+  /* Color dots for clients */
+  .color-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 6px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .app { padding: 12px; }
+    header h1 { font-size: 1.2rem; }
+    .timer-time { font-size: 2.5rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .entries-table { font-size: 0.8rem; }
+    .entries-table th, .entries-table td { padding: 8px 6px; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    direction: rtl;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Inline edit */
+  .editable { cursor: pointer; }
+  .editable:hover { text-decoration: underline dotted var(--text2); }
+
+  /* Chart bar */
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bar-label {
+    width: 120px;
+    font-size: 0.8rem;
+    text-align: left;
+    color: var(--text2);
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: fit-content;
+    direction: ltr;
+  }
+
+  .weekly-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .weekly-nav span { font-size: 0.95rem; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <h1>Time Tracker</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV()">CSV ייצוא</button>
+      <button class="btn btn-outline" onclick="exportJSON()">JSON ייצוא</button>
+      <button class="btn btn-outline" onclick="importData()">ייבוא</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="timer">טיימר</button>
+    <button class="tab" data-tab="entries">רשומות</button>
+    <button class="tab" data-tab="reports">דוחות</button>
+    <button class="tab" data-tab="clients">לקוחות</button>
+  </div>
+
+  <!-- TIMER SECTION -->
+  <div class="section active" id="sec-timer">
+    <div class="card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>לקוח</label>
+          <select id="timerClient" onchange="updateProjectsDropdown('timerProject', this.value)">
+            <option value="">בחר לקוח...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>פרויקט</label>
+          <select id="timerProject">
+            <option value="">בחר פרויקט...</option>
+          </select>
+        </div>
+        <div class="form-group desc">
+          <label>תיאור</label>
+          <input type="text" id="timerDesc" placeholder="מה עשית...">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="timerCard">
+      <div class="timer-display">
+        <div class="timer-time" id="timerDisplay">00:00:00</div>
+        <div class="timer-project" id="timerLabel">בחר לקוח ופרויקט כדי להתחיל</div>
+        <div class="timer-controls">
+          <button class="btn-timer btn-start" id="btnStart" onclick="startTimer()">▶</button>
+          <button class="btn-timer btn-stop" id="btnStop" onclick="stopTimer()" style="display:none">■</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick manual entry -->
+    <div class="card">
+      <h2>הוספה ידנית מהירה</h2>
+      <div class="quick-entry">
+        <div class="form-group">
+          <label>תאריך</label>
+          <input type="date" id="manualDate">
+        </div>
+        <div class="form-group">
+          <label>לקוח</label>
+          <select id="manualClient" onchange="updateProjectsDropdown('manualProject', this.value)">
+            <option value="">בחר...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>פרויקט</label>
+          <select id="manualProject">
+            <option value="">בחר...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>שעות</label>
+          <input type="number" id="manualHours" min="0" max="24" step="0.25" placeholder="1.5">
+        </div>
+        <div class="form-group desc">
+          <label>תיאור</label>
+          <input type="text" id="manualDesc" placeholder="מה עשית...">
+        </div>
+        <button class="btn btn-primary" onclick="addManualEntry()" style="height:38px; align-self:flex-end;">הוסף</button>
+      </div>
+    </div>
+
+    <!-- Today's entries -->
+    <div class="card">
+      <h2>היום</h2>
+      <div id="todayEntries"></div>
+    </div>
+  </div>
+
+  <!-- ENTRIES SECTION -->
+  <div class="section" id="sec-entries">
+    <div class="card">
+      <div class="filter-bar">
+        <div class="form-group">
+          <label>מתאריך</label>
+          <input type="date" id="filterFrom" onchange="renderEntries()">
+        </div>
+        <div class="form-group">
+          <label>עד תאריך</label>
+          <input type="date" id="filterTo" onchange="renderEntries()">
+        </div>
+        <div class="form-group">
+          <label>לקוח</label>
+          <select id="filterClient" onchange="renderEntries()">
+            <option value="">הכל</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>פרויקט</label>
+          <select id="filterProject" onchange="renderEntries()">
+            <option value="">הכל</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="entriesTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- REPORTS SECTION -->
+  <div class="section" id="sec-reports">
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="card">
+      <h2>סיכום לפי לקוח</h2>
+      <div id="reportByClient"></div>
+    </div>
+
+    <div class="card">
+      <h2>שעות יומיות — השבוע</h2>
+      <div class="weekly-nav">
+        <button class="btn btn-sm btn-outline" onclick="weekOffset++;renderWeeklyChart()">→ שבוע קודם</button>
+        <span id="weekLabel"></span>
+        <button class="btn btn-sm btn-outline" onclick="if(weekOffset>0){weekOffset--;renderWeeklyChart()}">שבוע הבא ←</button>
+      </div>
+      <div id="weeklyChart" class="bar-chart"></div>
+    </div>
+
+    <div class="card">
+      <h2>סיכום לפי פרויקט</h2>
+      <div id="reportByProject"></div>
+    </div>
+  </div>
+
+  <!-- CLIENTS SECTION -->
+  <div class="section" id="sec-clients">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="font-size:1.1rem;">ניהול לקוחות ופרויקטים</h2>
+      <button class="btn btn-primary" onclick="openClientModal()">+ לקוח חדש</button>
+    </div>
+    <div class="client-list" id="clientList"></div>
+  </div>
+</div>
+
+<!-- Client Modal -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <h2 id="clientModalTitle">לקוח חדש</h2>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>שם לקוח</label>
+      <input type="text" id="clientName" placeholder="שם החברה או הלקוח">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>איש קשר</label>
+      <input type="text" id="clientContact" placeholder="שם איש קשר (אופציונלי)">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>אימייל</label>
+      <input type="email" id="clientEmail" placeholder="email@example.com">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>תעריף שעתי (₪)</label>
+      <input type="number" id="clientRate" min="0" step="10" placeholder="0">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>צבע</label>
+      <input type="color" id="clientColor" value="#6c63ff">
+    </div>
+    <div class="form-group">
+      <label>פרויקטים (שורה לכל פרויקט)</label>
+      <textarea id="clientProjects" rows="4" placeholder="פרויקט א&#10;פרויקט ב"></textarea>
+    </div>
+    <input type="hidden" id="editClientId">
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveClient()">שמור</button>
+      <button class="btn btn-outline" onclick="closeModal('clientModal')">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Entry Modal -->
+<div class="modal-overlay" id="entryModal">
+  <div class="modal">
+    <h2>עריכת רשומה</h2>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>תאריך</label>
+      <input type="date" id="editDate">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>לקוח</label>
+      <select id="editClient" onchange="updateProjectsDropdown('editProject', this.value)"></select>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>פרויקט</label>
+      <select id="editProject"></select>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>שעות</label>
+      <input type="number" id="editHours" min="0" max="24" step="0.25">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>תיאור</label>
+      <input type="text" id="editDesc">
+    </div>
+    <input type="hidden" id="editEntryId">
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEntry()">שמור</button>
+      <button class="btn btn-danger" onclick="deleteEntry()">מחק</button>
+      <button class="btn btn-outline" onclick="closeModal('entryModal')">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────── DATA ────────────
+const STORAGE_KEY = 'timetracker_data';
+
+let data = loadData();
+let timerInterval = null;
+let timerStart = null;
+let weekOffset = 0;
+
+function defaultData() {
+  return { clients: [], entries: [], nextId: 1, nextClientId: 1 };
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      // Restore running timer
+      if (d._timerStart) {
+        timerStart = d._timerStart;
+      }
+      return d;
+    }
+  } catch(e) {}
+  return defaultData();
+}
+
+function saveData() {
+  const d = { ...data };
+  if (timerStart) d._timerStart = timerStart;
+  else delete d._timerStart;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+}
+
+// ──────────── CLIENTS ────────────
+function getClient(id) {
+  return data.clients.find(c => c.id === id);
+}
+
+function openClientModal(clientId) {
+  const modal = document.getElementById('clientModal');
+  if (clientId) {
+    const c = getClient(clientId);
+    document.getElementById('clientModalTitle').textContent = 'עריכת לקוח';
+    document.getElementById('clientName').value = c.name;
+    document.getElementById('clientContact').value = c.contact || '';
+    document.getElementById('clientEmail').value = c.email || '';
+    document.getElementById('clientRate').value = c.rate || '';
+    document.getElementById('clientColor').value = c.color || '#6c63ff';
+    document.getElementById('clientProjects').value = (c.projects || []).join('\n');
+    document.getElementById('editClientId').value = clientId;
+  } else {
+    document.getElementById('clientModalTitle').textContent = 'לקוח חדש';
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientContact').value = '';
+    document.getElementById('clientEmail').value = '';
+    document.getElementById('clientRate').value = '';
+    document.getElementById('clientColor').value = '#6c63ff';
+    document.getElementById('clientProjects').value = '';
+    document.getElementById('editClientId').value = '';
+  }
+  modal.classList.add('active');
+}
+
+function saveClient() {
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) { toast('נא להזין שם לקוח'); return; }
+
+  const projects = document.getElementById('clientProjects').value
+    .split('\n').map(p => p.trim()).filter(Boolean);
+
+  const clientData = {
+    name,
+    contact: document.getElementById('clientContact').value.trim(),
+    email: document.getElementById('clientEmail').value.trim(),
+    rate: parseFloat(document.getElementById('clientRate').value) || 0,
+    color: document.getElementById('clientColor').value,
+    projects
+  };
+
+  const editId = document.getElementById('editClientId').value;
+  if (editId) {
+    const idx = data.clients.findIndex(c => c.id === parseInt(editId));
+    if (idx >= 0) data.clients[idx] = { ...data.clients[idx], ...clientData };
+  } else {
+    clientData.id = data.nextClientId++;
+    data.clients.push(clientData);
+  }
+
+  saveData();
+  closeModal('clientModal');
+  renderAll();
+  toast('לקוח נשמר');
+}
+
+function deleteClient(id) {
+  if (!confirm('למחוק את הלקוח? הרשומות ישארו.')) return;
+  data.clients = data.clients.filter(c => c.id !== id);
+  saveData();
+  renderAll();
+  toast('לקוח נמחק');
+}
+
+function renderClients() {
+  const wrap = document.getElementById('clientList');
+  if (!data.clients.length) {
+    wrap.innerHTML = '<div class="empty"><p>אין לקוחות עדיין</p><button class="btn btn-primary" onclick="openClientModal()">+ הוסף לקוח ראשון</button></div>';
+    return;
+  }
+
+  wrap.innerHTML = data.clients.map(c => {
+    const totalHours = data.entries
+      .filter(e => e.clientId === c.id)
+      .reduce((s, e) => s + e.hours, 0);
+
+    return `<div class="client-card">
+      <div class="client-info">
+        <h3><span class="color-dot" style="background:${c.color}"></span>${esc(c.name)}</h3>
+        <p>${c.projects.length} פרויקטים · ${totalHours.toFixed(1)} שעות${c.rate ? ' · ₪' + c.rate + '/שעה' : ''}</p>
+      </div>
+      <div class="client-actions">
+        <button class="btn btn-sm btn-outline" onclick="openClientModal(${c.id})">עריכה</button>
+        <button class="btn btn-sm btn-outline" style="color:var(--red);border-color:var(--red)" onclick="deleteClient(${c.id})">מחק</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ──────────── DROPDOWNS ────────────
+function populateClientDropdowns() {
+  const selects = ['timerClient', 'manualClient', 'filterClient', 'editClient'];
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    const firstOpt = id === 'filterClient' ? '<option value="">הכל</option>' : '<option value="">בחר...</option>';
+    sel.innerHTML = firstOpt + data.clients.map(c =>
+      `<option value="${c.id}" ${String(c.id) === current ? 'selected' : ''}>${esc(c.name)}</option>`
+    ).join('');
+  });
+}
+
+function updateProjectsDropdown(selectId, clientId) {
+  const sel = document.getElementById(selectId);
+  const client = getClient(parseInt(clientId));
+  if (!client) {
+    sel.innerHTML = '<option value="">בחר...</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">בחר...</option>' +
+    client.projects.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+}
+
+function populateFilterProjects() {
+  const sel = document.getElementById('filterProject');
+  const allProjects = [...new Set(data.entries.map(e => e.project).filter(Boolean))];
+  sel.innerHTML = '<option value="">הכל</option>' +
+    allProjects.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+}
+
+// ──────────── TIMER ────────────
+function startTimer() {
+  const clientId = document.getElementById('timerClient').value;
+  if (!clientId) { toast('בחר לקוח לפני התחלה'); return; }
+
+  timerStart = Date.now();
+  saveData();
+
+  const client = getClient(parseInt(clientId));
+  const project = document.getElementById('timerProject').value;
+  document.getElementById('timerLabel').textContent =
+    `${client.name}${project ? ' — ' + project : ''}`;
+
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnStop').style.display = 'flex';
+  document.getElementById('timerCard').classList.add('timer-running');
+
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+  updateTimerDisplay();
+}
+
+function stopTimer() {
+  if (!timerStart) return;
+
+  clearInterval(timerInterval);
+  const elapsed = (Date.now() - timerStart) / 1000 / 3600;
+  const hours = Math.round(elapsed * 4) / 4; // Round to nearest 0.25
+
+  const clientId = parseInt(document.getElementById('timerClient').value);
+  const project = document.getElementById('timerProject').value;
+  const desc = document.getElementById('timerDesc').value.trim();
+
+  if (hours >= 0.01) {
+    addEntry({
+      date: todayStr(),
+      clientId,
+      project,
+      hours: Math.max(hours, 0.25),
+      description: desc
+    });
+  }
+
+  timerStart = null;
+  saveData();
+
+  document.getElementById('timerDisplay').textContent = '00:00:00';
+  document.getElementById('timerLabel').textContent = 'בחר לקוח ופרויקט כדי להתחיל';
+  document.getElementById('btnStart').style.display = 'flex';
+  document.getElementById('btnStop').style.display = 'none';
+  document.getElementById('timerCard').classList.remove('timer-running');
+  document.getElementById('timerDesc').value = '';
+
+  renderTodayEntries();
+  toast('רשומה נשמרה — ' + Math.max(hours, 0.25).toFixed(2) + ' שעות');
+}
+
+function updateTimerDisplay() {
+  if (!timerStart) return;
+  const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+  const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+  const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${h}:${m}:${s}`;
+}
+
+// Resume timer if was running
+function resumeTimer() {
+  if (timerStart) {
+    document.getElementById('btnStart').style.display = 'none';
+    document.getElementById('btnStop').style.display = 'flex';
+    document.getElementById('timerCard').classList.add('timer-running');
+    document.getElementById('timerLabel').textContent = 'טיימר פעיל (ממשיך)';
+    timerInterval = setInterval(updateTimerDisplay, 1000);
+    updateTimerDisplay();
+  }
+}
+
+// ──────────── ENTRIES ────────────
+function addEntry(entry) {
+  entry.id = data.nextId++;
+  entry.clientName = getClient(entry.clientId)?.name || '';
+  entry.createdAt = new Date().toISOString();
+  data.entries.push(entry);
+  saveData();
+}
+
+function addManualEntry() {
+  const date = document.getElementById('manualDate').value;
+  const clientId = parseInt(document.getElementById('manualClient').value);
+  const project = document.getElementById('manualProject').value;
+  const hours = parseFloat(document.getElementById('manualHours').value);
+  const desc = document.getElementById('manualDesc').value.trim();
+
+  if (!date) { toast('בחר תאריך'); return; }
+  if (!clientId) { toast('בחר לקוח'); return; }
+  if (!hours || hours <= 0) { toast('הזן שעות'); return; }
+
+  addEntry({ date, clientId, project, hours, description: desc });
+
+  document.getElementById('manualHours').value = '';
+  document.getElementById('manualDesc').value = '';
+
+  renderTodayEntries();
+  toast('רשומה נוספה');
+}
+
+function openEditEntry(id) {
+  const entry = data.entries.find(e => e.id === id);
+  if (!entry) return;
+
+  document.getElementById('editDate').value = entry.date;
+  document.getElementById('editClient').value = entry.clientId;
+  updateProjectsDropdown('editProject', entry.clientId);
+  setTimeout(() => {
+    document.getElementById('editProject').value = entry.project || '';
+  }, 50);
+  document.getElementById('editHours').value = entry.hours;
+  document.getElementById('editDesc').value = entry.description || '';
+  document.getElementById('editEntryId').value = id;
+
+  document.getElementById('entryModal').classList.add('active');
+}
+
+function saveEntry() {
+  const id = parseInt(document.getElementById('editEntryId').value);
+  const idx = data.entries.findIndex(e => e.id === id);
+  if (idx < 0) return;
+
+  const clientId = parseInt(document.getElementById('editClient').value);
+
+  data.entries[idx] = {
+    ...data.entries[idx],
+    date: document.getElementById('editDate').value,
+    clientId,
+    clientName: getClient(clientId)?.name || '',
+    project: document.getElementById('editProject').value,
+    hours: parseFloat(document.getElementById('editHours').value) || 0,
+    description: document.getElementById('editDesc').value.trim()
+  };
+
+  saveData();
+  closeModal('entryModal');
+  renderAll();
+  toast('רשומה עודכנה');
+}
+
+function deleteEntry() {
+  const id = parseInt(document.getElementById('editEntryId').value);
+  if (!confirm('למחוק רשומה זו?')) return;
+  data.entries = data.entries.filter(e => e.id !== id);
+  saveData();
+  closeModal('entryModal');
+  renderAll();
+  toast('רשומה נמחקה');
+}
+
+function renderTodayEntries() {
+  const today = todayStr();
+  const todayEntries = data.entries.filter(e => e.date === today);
+
+  const wrap = document.getElementById('todayEntries');
+  if (!todayEntries.length) {
+    wrap.innerHTML = '<p style="color:var(--text2);font-size:0.85rem;">אין רשומות להיום</p>';
+    return;
+  }
+
+  const totalToday = todayEntries.reduce((s, e) => s + e.hours, 0);
+
+  wrap.innerHTML = `
+    <table class="entries-table">
+      <thead><tr>
+        <th>לקוח</th><th>פרויקט</th><th>תיאור</th><th>שעות</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${todayEntries.map(e => `<tr>
+          <td><span class="tag tag-client">${esc(e.clientName || getClient(e.clientId)?.name || '—')}</span></td>
+          <td>${e.project ? '<span class="tag tag-project">' + esc(e.project) + '</span>' : '—'}</td>
+          <td>${esc(e.description || '—')}</td>
+          <td class="hours">${e.hours.toFixed(2)}</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openEditEntry(${e.id})">עריכה</button></td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr>
+        <td colspan="3" style="font-weight:600;">סה"כ היום</td>
+        <td class="hours" style="color:var(--accent)">${totalToday.toFixed(2)}</td>
+        <td></td>
+      </tr></tfoot>
+    </table>`;
+}
+
+function renderEntries() {
+  const from = document.getElementById('filterFrom').value;
+  const to = document.getElementById('filterTo').value;
+  const clientFilter = document.getElementById('filterClient').value;
+  const projectFilter = document.getElementById('filterProject').value;
+
+  let filtered = [...data.entries];
+
+  if (from) filtered = filtered.filter(e => e.date >= from);
+  if (to) filtered = filtered.filter(e => e.date <= to);
+  if (clientFilter) filtered = filtered.filter(e => e.clientId === parseInt(clientFilter));
+  if (projectFilter) filtered = filtered.filter(e => e.project === projectFilter);
+
+  filtered.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+
+  const wrap = document.getElementById('entriesTableWrap');
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="empty"><p>אין רשומות</p></div>';
+    return;
+  }
+
+  const total = filtered.reduce((s, e) => s + e.hours, 0);
+
+  wrap.innerHTML = `
+    <table class="entries-table">
+      <thead><tr>
+        <th>תאריך</th><th>לקוח</th><th>פרויקט</th><th>תיאור</th><th>שעות</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${filtered.map(e => `<tr>
+          <td style="direction:ltr;text-align:center;">${formatDateHe(e.date)}</td>
+          <td><span class="tag tag-client">${esc(e.clientName || getClient(e.clientId)?.name || '—')}</span></td>
+          <td>${e.project ? '<span class="tag tag-project">' + esc(e.project) + '</span>' : '—'}</td>
+          <td>${esc(e.description || '—')}</td>
+          <td class="hours">${e.hours.toFixed(2)}</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openEditEntry(${e.id})">עריכה</button></td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr>
+        <td colspan="4" style="font-weight:600;">סה"כ (${filtered.length} רשומות)</td>
+        <td class="hours" style="color:var(--accent)">${total.toFixed(2)}</td>
+        <td></td>
+      </tr></tfoot>
+    </table>`;
+}
+
+// ──────────── REPORTS ────────────
+function renderReports() {
+  const now = new Date();
+  const thisMonth = now.toISOString().slice(0, 7);
+  const thisWeekStart = getWeekStart(now);
+
+  const monthEntries = data.entries.filter(e => e.date.startsWith(thisMonth));
+  const weekEntries = data.entries.filter(e => e.date >= thisWeekStart);
+  const allHours = data.entries.reduce((s, e) => s + e.hours, 0);
+  const monthHours = monthEntries.reduce((s, e) => s + e.hours, 0);
+  const weekHours = weekEntries.reduce((s, e) => s + e.hours, 0);
+  const todayHours = data.entries.filter(e => e.date === todayStr()).reduce((s, e) => s + e.hours, 0);
+
+  // Revenue
+  const monthRevenue = monthEntries.reduce((s, e) => {
+    const c = getClient(e.clientId);
+    return s + (c ? e.hours * (c.rate || 0) : 0);
+  }, 0);
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${todayHours.toFixed(1)}</div>
+      <div class="stat-label">שעות היום</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${weekHours.toFixed(1)}</div>
+      <div class="stat-label">שעות השבוע</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${monthHours.toFixed(1)}</div>
+      <div class="stat-label">שעות החודש</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--green)">₪${monthRevenue.toLocaleString()}</div>
+      <div class="stat-label">הכנסה החודש</div>
+    </div>
+  `;
+
+  // By client
+  const byClient = {};
+  data.entries.forEach(e => {
+    const name = e.clientName || getClient(e.clientId)?.name || 'ללא לקוח';
+    if (!byClient[name]) byClient[name] = 0;
+    byClient[name] += e.hours;
+  });
+
+  const clientRows = Object.entries(byClient).sort((a, b) => b[1] - a[1]);
+  const maxClientHours = Math.max(...clientRows.map(r => r[1]), 1);
+
+  document.getElementById('reportByClient').innerHTML = clientRows.length
+    ? '<div class="bar-chart">' + clientRows.map(([name, hours]) => `
+      <div class="bar-row">
+        <div class="bar-label">${esc(name)}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(hours / maxClientHours * 100).toFixed(1)}%">${hours.toFixed(1)}h</div>
+        </div>
+      </div>`).join('') + '</div>'
+    : '<p style="color:var(--text2)">אין נתונים</p>';
+
+  // By project
+  const byProject = {};
+  data.entries.forEach(e => {
+    const key = e.project || 'ללא פרויקט';
+    if (!byProject[key]) byProject[key] = 0;
+    byProject[key] += e.hours;
+  });
+
+  const projRows = Object.entries(byProject).sort((a, b) => b[1] - a[1]);
+  const maxProjHours = Math.max(...projRows.map(r => r[1]), 1);
+
+  document.getElementById('reportByProject').innerHTML = projRows.length
+    ? '<div class="bar-chart">' + projRows.map(([name, hours]) => `
+      <div class="bar-row">
+        <div class="bar-label">${esc(name)}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(hours / maxProjHours * 100).toFixed(1)}%;background:linear-gradient(90deg,var(--green),#27ae60)">${hours.toFixed(1)}h</div>
+        </div>
+      </div>`).join('') + '</div>'
+    : '<p style="color:var(--text2)">אין נתונים</p>';
+
+  renderWeeklyChart();
+}
+
+function renderWeeklyChart() {
+  const now = new Date();
+  now.setDate(now.getDate() - weekOffset * 7);
+  const weekStart = getWeekStart(now);
+
+  const days = [];
+  const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const hours = data.entries.filter(e => e.date === dateStr).reduce((s, e) => s + e.hours, 0);
+    days.push({ name: dayNames[i], date: dateStr, hours });
+  }
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  document.getElementById('weekLabel').textContent =
+    `${formatDateHe(weekStart)} — ${formatDateHe(weekEnd.toISOString().slice(0, 10))}`;
+
+  const maxH = Math.max(...days.map(d => d.hours), 1);
+  const totalWeek = days.reduce((s, d) => s + d.hours, 0);
+
+  document.getElementById('weeklyChart').innerHTML =
+    days.map(d => `
+      <div class="bar-row">
+        <div class="bar-label">${d.name}</div>
+        <div class="bar-track">
+          ${d.hours > 0 ? `<div class="bar-fill" style="width:${(d.hours / maxH * 100).toFixed(1)}%;background:linear-gradient(90deg,var(--orange),#e67e22)">${d.hours.toFixed(1)}h</div>` : ''}
+        </div>
+      </div>`).join('') +
+    `<div style="text-align:center;margin-top:8px;color:var(--text2);font-size:0.85rem;">
+      סה"כ שבועי: <strong style="color:var(--text)">${totalWeek.toFixed(1)} שעות</strong>
+    </div>`;
+}
+
+// ──────────── EXPORT / IMPORT ────────────
+function exportCSV() {
+  if (!data.entries.length) { toast('אין רשומות לייצוא'); return; }
+
+  const headers = ['Date', 'Client', 'Project', 'Hours', 'Description'];
+  const rows = data.entries.map(e => [
+    e.date,
+    `"${(e.clientName || getClient(e.clientId)?.name || '').replace(/"/g, '""')}"`,
+    `"${(e.project || '').replace(/"/g, '""')}"`,
+    e.hours.toFixed(2),
+    `"${(e.description || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  downloadFile(csv, 'timesheet_' + todayStr() + '.csv', 'text/csv');
+  toast('CSV יוצא בהצלחה');
+}
+
+function exportJSON() {
+  const json = JSON.stringify(data, null, 2);
+  downloadFile(json, 'timetracker_backup_' + todayStr() + '.json', 'application/json');
+  toast('JSON יוצא בהצלחה');
+}
+
+function importData() {
+  document.getElementById('importFile').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.clients && imported.entries) {
+        if (confirm('זה יחליף את כל הנתונים הקיימים. להמשיך?')) {
+          data = imported;
+          saveData();
+          renderAll();
+          toast('נתונים יובאו בהצלחה');
+        }
+      } else {
+        toast('קובץ לא תקין');
+      }
+    } catch(err) {
+      toast('שגיאה בקריאת הקובץ');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob(['\uFEFF' + content], { type: type + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ──────────── HELPERS ────────────
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getWeekStart(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  date.setDate(date.getDate() - day);
+  return date.toISOString().slice(0, 10);
+}
+
+function formatDateHe(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
+}
+
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+
+// ──────────── TABS ────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('sec-' + tab.dataset.tab).classList.add('active');
+
+    if (tab.dataset.tab === 'entries') renderEntries();
+    if (tab.dataset.tab === 'reports') renderReports();
+    if (tab.dataset.tab === 'clients') renderClients();
+  });
+});
+
+// ──────────── KEYBOARD SHORTCUTS ────────────
+document.addEventListener('keydown', (e) => {
+  // Ctrl+Enter to start/stop timer
+  if (e.ctrlKey && e.key === 'Enter') {
+    e.preventDefault();
+    if (timerStart) stopTimer();
+    else startTimer();
+  }
+  // Escape to close modals
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+
+// ──────────── INIT ────────────
+function renderAll() {
+  populateClientDropdowns();
+  populateFilterProjects();
+  renderTodayEntries();
+  renderClients();
+  renderEntries();
+
+  // Set default date
+  document.getElementById('manualDate').value = todayStr();
+
+  // Set default filter range (this month)
+  const now = new Date();
+  document.getElementById('filterFrom').value = now.toISOString().slice(0, 8) + '01';
+  document.getElementById('filterTo').value = todayStr();
+}
+
+renderAll();
+resumeTimer();
+</script>
+</body>
+</html>
